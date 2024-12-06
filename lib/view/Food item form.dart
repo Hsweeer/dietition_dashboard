@@ -9,18 +9,20 @@ class FoodItemsMasterScreen extends StatefulWidget {
 
 class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
   final Map<String, List<Map<String, dynamic>>> foodCategories = {
+    'Morning Tea': [],
     'Breakfast': [],
-    'Mid Day': [],
+    'Mid Day Snacks': [],
     'Lunch': [],
-    'Snacks': [],
+    'Evening Snacks': [],
     'Dinner': [],
+    'Bedtime Snack': [],
   };
 
   void addFoodItem(String category) {
     setState(() {
       foodCategories[category]?.add({
         'name': '',
-        'quantity': '',
+        'vegetarian': 'Vegetarian', // Default value
         'calories': '',
         'images': [],
       });
@@ -34,7 +36,7 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
   }
 
   void updateFoodItem(
-      String category, int index, String field, String value) {
+      String category, int index, String field, dynamic value) {
     setState(() {
       foodCategories[category]?[index][field] = value;
     });
@@ -50,21 +52,19 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
             Container(
               height: 45,
               width: double.infinity,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: AppColors.primary
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.primary,
               ),
-              child:Center(
+              child: Center(
                 child: Text(
                   'Food Items Master',
                   style: TextStyle(
@@ -73,11 +73,10 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              ) ,
+              ),
             ),
-SizedBox(height: 30,),
+            SizedBox(height: 30),
             Column(
-
               crossAxisAlignment: CrossAxisAlignment.start,
               children: foodCategories.entries.map((entry) {
                 return FoodCategoryWidget(
@@ -104,7 +103,7 @@ class FoodCategoryWidget extends StatelessWidget {
   final List<Map<String, dynamic>> items;
   final VoidCallback onAddItem;
   final Function(int index) onRemoveItem;
-  final Function(int index, String field, String value) onUpdateItem;
+  final Function(int index, String field, dynamic value) onUpdateItem;
   final Function(int index, List<String> images) onUploadImages;
 
   const FoodCategoryWidget({
@@ -173,14 +172,10 @@ class FoodCategoryWidget extends StatelessWidget {
   }
 }
 
-
-
-
-
 class FoodItemWidget extends StatelessWidget {
   final Map<String, dynamic> item;
   final VoidCallback onRemove;
-  final Function(String field, String value) onUpdateField;
+  final Function(String field, dynamic value) onUpdateField;
   final Function(List<String> images) onUploadImages;
 
   const FoodItemWidget({
@@ -191,29 +186,21 @@ class FoodItemWidget extends StatelessWidget {
     required this.onUploadImages,
   }) : super(key: key);
 
-  // Function to pick images using the file picker
   Future<void> pickImage(BuildContext context) async {
-    // Allow the user to pick multiple images (up to 4 images as per requirement)
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
       allowMultiple: true,
-      withData: true,
     );
 
     if (result != null) {
-      // Get the file paths or data of the selected images
       List<String> selectedImages = result.files.map((file) {
-        // For now, we'll use a placeholder URL, replace this with actual image paths
-        // if you want to upload the image to a server.
         return 'https://via.placeholder.com/60';
       }).toList();
 
-      // Limit images to 4 max
       if ((item['images']?.length ?? 0) + selectedImages.length <= 4) {
         item['images']?.addAll(selectedImages);
         onUploadImages(item['images']);
       } else {
-        // You can show an alert if the user tries to upload more than 4 images
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('You can upload a maximum of 4 images.')),
         );
@@ -224,10 +211,7 @@ class FoodItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.grey[100],
       margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -237,12 +221,19 @@ class FoodItemWidget extends StatelessWidget {
               decoration: InputDecoration(labelText: 'Item Name'),
               onChanged: (value) => onUpdateField('name', value),
             ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Quantity'),
-              onChanged: (value) => onUpdateField('quantity', value),
+            DropdownButtonFormField<String>(
+              value: item['vegetarian'],
+              items: ['Vegetarian', 'Non-Vegetarian']
+                  .map((type) => DropdownMenuItem(
+                value: type,
+                child: Text(type),
+              ))
+                  .toList(),
+              onChanged: (value) => onUpdateField('vegetarian', value),
+              decoration: InputDecoration(labelText: 'Type'),
             ),
             TextField(
-              decoration: InputDecoration(labelText: 'Calories'),
+              decoration: InputDecoration(labelText: 'Calories (Optional)'),
               onChanged: (value) => onUpdateField('calories', value),
             ),
             SizedBox(height: 10),
@@ -261,7 +252,7 @@ class FoodItemWidget extends StatelessWidget {
                 ),
               )..add(
                 InkWell(
-                  onTap: () => pickImage(context), // Pass context here
+                  onTap: () => pickImage(context),
                   child: Container(
                     width: 60,
                     height: 60,
