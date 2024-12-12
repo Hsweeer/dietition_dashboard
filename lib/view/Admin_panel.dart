@@ -16,6 +16,7 @@ import 'Subscription plans.dart';
 
 class AdminPanel extends StatelessWidget {
   final AdminTabController tabController = Get.put(AdminTabController());
+  TimeOfDay selectedLunchTime = TimeOfDay(hour: 12, minute: 0);
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +114,9 @@ class AdminPanel extends StatelessWidget {
         return AssignDietPlanScreen();
 
       case 2:
-        return FoodItemsMasterScreen();
+        return FoodItemsMasterScreen(selectedClientId: '', dietPlan: '', breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime,);
+        // return FoodItemsMasterScreen(clientUid: '', clientName: '', dietPlan: '', breakfastTime: '', lunchTime: '', dinnerTime: '', planExpiryDate: null, dietPlanExpiryDate: null,);
+
       case 3:
         return DietPlanScreen();
       case 4:

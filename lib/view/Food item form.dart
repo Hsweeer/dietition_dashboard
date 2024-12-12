@@ -1,8 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../utils/app-colors.dart';
 
 class FoodItemsMasterScreen extends StatefulWidget {
+  final String selectedClientId;
+  final String dietPlan;
+  final TimeOfDay breakfastTime;
+  final TimeOfDay lunchTime;
+  final TimeOfDay dinnerTime;
+  final DateTime? dietPlanExpiryDate;
+  final DateTime? planExpiryDate;
+
+  const FoodItemsMasterScreen({
+    Key? key,
+    required this.selectedClientId,
+    required this.dietPlan,
+    required this.breakfastTime,
+    required this.lunchTime,
+    required this.dinnerTime,
+    this.dietPlanExpiryDate,
+    this.planExpiryDate,
+  }) : super(key: key);
+
   @override
   _FoodItemsMasterScreenState createState() => _FoodItemsMasterScreenState();
 }
@@ -48,6 +68,38 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
     });
   }
 
+  Future<void> saveDietPlan() async {
+    try {
+      final data = {
+        'dietPlan': widget.dietPlan,
+        'mealTimes': {
+          'breakfast': widget.breakfastTime.format(context),
+          'lunch': widget.lunchTime.format(context),
+          'dinner': widget.dinnerTime.format(context),
+        },
+        'expiryDates': {
+          'dietPlanExpiryDate': widget.dietPlanExpiryDate?.toIso8601String(),
+          'planExpiryDate': widget.planExpiryDate?.toIso8601String(),
+        },
+        'foodCategories': foodCategories,
+      };
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.selectedClientId)
+          .collection('dietPlans')
+          .add(data);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Diet Plan saved successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving diet plan: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,18 +130,38 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
             SizedBox(height: 30),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: foodCategories.entries.map((entry) {
-                return FoodCategoryWidget(
-                  category: entry.key,
-                  items: entry.value,
-                  onAddItem: () => addFoodItem(entry.key),
-                  onRemoveItem: (index) => removeFoodItem(entry.key, index),
-                  onUpdateItem: (index, field, value) =>
-                      updateFoodItem(entry.key, index, field, value),
-                  onUploadImages: (index, images) =>
-                      uploadImage(entry.key, index, images),
-                );
-              }).toList(),
+              children: [
+                ...foodCategories.entries.map((entry) {
+                  return FoodCategoryWidget(
+                    category: entry.key,
+                    items: entry.value,
+                    onAddItem: () => addFoodItem(entry.key),
+                    onRemoveItem: (index) => removeFoodItem(entry.key, index),
+                    onUpdateItem: (index, field, value) =>
+                        updateFoodItem(entry.key, index, field, value),
+                    onUploadImages: (index, images) =>
+                        uploadImage(entry.key, index, images),
+                  );
+                }).toList(),
+                SizedBox(height: 20), // Space between the list and button
+                Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: saveDietPlan,
+                    child: Text('Save Diet Plan',
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -186,28 +258,6 @@ class FoodItemWidget extends StatelessWidget {
     required this.onUploadImages,
   }) : super(key: key);
 
-  Future<void> pickImage(BuildContext context) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: true,
-    );
-
-    if (result != null) {
-      List<String> selectedImages = result.files.map((file) {
-        return 'https://via.placeholder.com/60';
-      }).toList();
-
-      if ((item['images']?.length ?? 0) + selectedImages.length <= 4) {
-        item['images']?.addAll(selectedImages);
-        onUploadImages(item['images']);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You can upload a maximum of 4 images.')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -252,7 +302,7 @@ class FoodItemWidget extends StatelessWidget {
                 ),
               )..add(
                 InkWell(
-                  onTap: () => pickImage(context),
+                  onTap: () => {}, // Handle image picking
                   child: Container(
                     width: 60,
                     height: 60,

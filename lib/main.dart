@@ -6,20 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 // import 'firebase_options.dart'; // Import Firebase Core
 
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Firebase is initialized before runApp
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.web
-  // ); // Initialize Firebase
-
-Get.put(DietPlanController());
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // For web initialization
+  );
   runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

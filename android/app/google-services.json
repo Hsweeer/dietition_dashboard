@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "941962863086",
+    "project_id": "truediet4me-9e0f4",
+    "storage_bucket": "truediet4me-9e0f4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941962863086:android:0dc1e43803d6eec992aeff",
+        "android_client_info": {
+          "package_name": "com.example.dietition_admin_pane"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkhTuEO5w_82Sld4_m2zTc9IcJwEZPDw8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941962863086:android:01e4f71b0e884b1e92aeff",
+        "android_client_info": {
+          "package_name": "com.example.dietpro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkhTuEO5w_82Sld4_m2zTc9IcJwEZPDw8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

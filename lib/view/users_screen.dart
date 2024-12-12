@@ -7,6 +7,9 @@ class User {
   final String email;
   final String gender;
   String status; // Add status field to represent user status (blocked or active)
+  String subscriptionType; // 'Paid' or 'Free'
+  bool dietPlanAccess; // Access to diet plan
+  bool loginEnabled; // If the login is enabled
 
   User({
     required this.name,
@@ -14,6 +17,9 @@ class User {
     required this.email,
     required this.gender,
     this.status = 'Active', // Default status to 'Active'
+    this.subscriptionType = 'Free', // Default subscription to 'Free'
+    this.dietPlanAccess = true, // Default access to diet plans
+    this.loginEnabled = true, // Default login is enabled
   });
 }
 
@@ -21,10 +27,10 @@ class UserController extends GetxController {
   // List of dummy users
   var users = <User>[
     User(name: 'John Doe', userId: '101', email: 'john@example.com', gender: 'Customer'),
-    User(name: 'Jane Smith', userId: '102', email: 'jane@example.com', gender: 'Dietition'),
+    User(name: 'Jane Smith', userId: '102', email: 'jane@example.com', gender: 'Dietitian', subscriptionType: 'Paid'),
     User(name: 'Alice Johnson', userId: '103', email: 'alice@example.com', gender: 'Customer'),
-    User(name: 'Bob Brown', userId: '104', email: 'bob@example.com', gender: 'Customer'),
-    User(name: 'Eve Adams', userId: '105', email: 'eve@example.com', gender: 'Dietition'),
+    User(name: 'Bob Brown', userId: '104', email: 'bob@example.com', gender: 'Customer', subscriptionType: 'Paid'),
+    User(name: 'Eve Adams', userId: '105', email: 'eve@example.com', gender: 'Dietitian'),
   ].obs;
 
   var isLoading = false.obs;
@@ -43,6 +49,34 @@ class UserController extends GetxController {
 
   void removeUser(String userId) {
     users.removeWhere((u) => u.userId == userId);
+  }
+
+  void toggleDietPlanAccess(String userId) {
+    final user = users.firstWhere((u) => u.userId == userId, orElse: () => User(name: '', userId: '', email: '', gender: ''));
+    if (user.userId.isNotEmpty) {
+      user.dietPlanAccess = !user.dietPlanAccess;
+      update();
+    }
+  }
+
+  void toggleLogin(String userId) {
+    final user = users.firstWhere((u) => u.userId == userId, orElse: () => User(name: '', userId: '', email: '', gender: ''));
+    if (user.userId.isNotEmpty) {
+      user.loginEnabled = !user.loginEnabled;
+      update();
+    }
+  }
+
+  List<User> getDietitianReports() {
+    return users.where((user) => user.gender.toLowerCase() == 'dietitian').toList();
+  }
+
+  List<User> getPaidUsers() {
+    return users.where((user) => user.subscriptionType.toLowerCase() == 'paid').toList();
+  }
+
+  List<User> getFreeUsers() {
+    return users.where((user) => user.subscriptionType.toLowerCase() == 'free').toList();
   }
 }
 
@@ -69,72 +103,6 @@ class _UsersScreenState extends State<UsersScreen> {
     });
   }
 
-  void showAddUserDialog() {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController userIdController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController genderController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Add New User',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                TextField(controller: nameController, decoration: InputDecoration(labelText: 'Name')),
-                TextField(controller: userIdController, decoration: InputDecoration(labelText: 'User ID')),
-                TextField(controller: emailController, decoration: InputDecoration(labelText: 'Email')),
-                TextField(controller: genderController, decoration: InputDecoration(labelText: 'Gender')),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        if (nameController.text.isNotEmpty &&
-                            userIdController.text.isNotEmpty &&
-                            emailController.text.isNotEmpty &&
-                            genderController.text.isNotEmpty) {
-                          final newUser = User(
-                            name: nameController.text,
-                            userId: userIdController.text,
-                            email: emailController.text,
-                            gender: genderController.text,
-                          );
-                          userController.addUser(newUser);
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: Text('Add'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text('Cancel'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   void showOptions(User user) {
     showModalBottomSheet(
       context: context,
@@ -149,7 +117,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 title: Text('Approve'),
                 onTap: () {
                   // Approve the user
-                  // userController.approveUser(user.userId);
+                  user.status = 'Active';
                   Navigator.pop(context);
                 },
               ),
@@ -158,7 +126,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 title: Text('Disapprove'),
                 onTap: () {
                   // Disapprove the user
-                  // userController.disapproveUser(user.userId);
+                  user.status = 'Disapproved';
                   Navigator.pop(context);
                 },
               ),
@@ -166,8 +134,23 @@ class _UsersScreenState extends State<UsersScreen> {
                 leading: Icon(Icons.block, color: Colors.red),
                 title: Text('Block User'),
                 onTap: () {
-                  // Block the user
                   userController.blockUser(user.userId);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.no_meals, color: Colors.redAccent),
+                title: Text(user.dietPlanAccess ? 'Disable Diet Plan Access' : 'Enable Diet Plan Access'),
+                onTap: () {
+                  userController.toggleDietPlanAccess(user.userId);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.person_off, color: Colors.red),
+                title: Text(user.loginEnabled ? 'Disable Login' : 'Enable Login'),
+                onTap: () {
+                  userController.toggleLogin(user.userId);
                   Navigator.pop(context);
                 },
               ),
@@ -175,7 +158,6 @@ class _UsersScreenState extends State<UsersScreen> {
                 leading: Icon(Icons.delete, color: Colors.red),
                 title: Text('Delete User'),
                 onTap: () {
-                  // Remove the user
                   userController.removeUser(user.userId);
                   Navigator.pop(context);
                 },
@@ -187,32 +169,60 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
+  void showReports() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final dietitianReports = userController.getDietitianReports();
+        final paidUsers = userController.getPaidUsers();
+        final freeUsers = userController.getFreeUsers();
+        return AlertDialog(
+          title: Text('Reports'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Dietitians Handling Clients:'),
+                for (var dietitian in dietitianReports)
+                  Text('${dietitian.name} (${dietitian.userId})'),
+                SizedBox(height: 10),
+                Text('Paid Users:'),
+                for (var user in paidUsers) Text('${user.name} (${user.userId})'),
+                SizedBox(height: 10),
+                Text('Free Users:'),
+                for (var user in freeUsers) Text('${user.name} (${user.userId})'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Users Information'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.report),
+            onPressed: showReports,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Users Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                ElevatedButton(
-                  onPressed: showAddUserDialog,
-                  child: Row(
-                    children: [
-                      Icon(Icons.add),
-                      SizedBox(width: 8),
-                      Text('Add User'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
             TextField(
               controller: searchController,
               onChanged: filterUsers,
