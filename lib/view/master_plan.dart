@@ -90,55 +90,62 @@ class _DietPlansScreenState extends State<DietPlansScreen> {
 
   // Build Complete Diet Plan Details
   Widget buildDietPlanDetails(Map<String, dynamic> dietPlan) {
-    return Card(
-      margin: EdgeInsets.all(12),
-      color: secondary,
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        title: Text(
-          dietPlan['additionalPlanDetails']['dietPlanName'] ?? 'No Name',
-          style: TextStyle(fontWeight: FontWeight.bold, color: primary, fontSize: 18),
-        ),
-        subtitle: Text(
-          'Type: ${dietPlan['additionalPlanDetails']['type']} | Cost: ${dietPlan['additionalPlanDetails']['cost']}',
-        ),
-        onExpansionChanged: (expanded) {
-          if (expanded) {
-            setState(() {
-              selectedDietPlanId = dietPlan['id'];
-              selectedDietPlan = dietPlan;
-            });
-          }
-        },
-        children: [
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Meal Times:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('Breakfast: ${dietPlan['mealTimes']['breakfast']}'),
-                Text('Lunch: ${dietPlan['mealTimes']['lunch']}'),
-                Text('Dinner: ${dietPlan['mealTimes']['dinner']}'),
-                SizedBox(height: 10),
-                Text('Food Categories:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                for (var category in dietPlan['foodCategories'].keys)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(category,
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                      for (var food in dietPlan['foodCategories'][category])
-                        Text('- ${food['name']} (${food['calories']} cal)'),
-                    ],
-                  ),
-              ],
+    bool isSelected = selectedDietPlanId == dietPlan['id'];
+
+    return GestureDetector(
+      onLongPress: () {
+        setState(() {
+          selectedDietPlanId = dietPlan['id'];
+          selectedDietPlan = dietPlan;
+        });
+      },
+      child: Card(
+        margin: EdgeInsets.all(12),
+        color: isSelected ? primary.withOpacity(0.3) : secondary,
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ExpansionTile(
+          title: Text(
+            dietPlan['additionalPlanDetails']['dietPlanName'] ?? 'No Name',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isSelected ? secondary : primary,
+              fontSize: 18,
             ),
-          )
-        ],
+          ),
+          subtitle: Text(
+            'Type: ${dietPlan['additionalPlanDetails']['type']} | Cost: ${dietPlan['additionalPlanDetails']['cost']}',
+          ),
+          children: [
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Meal Times:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Breakfast: ${dietPlan['mealTimes']['breakfast']}'),
+                  Text('Lunch: ${dietPlan['mealTimes']['lunch']}'),
+                  Text('Dinner: ${dietPlan['mealTimes']['dinner']}'),
+                  SizedBox(height: 10),
+                  Text('Food Categories:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  for (var category in dietPlan['foodCategories'].keys)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(category,
+                            style:
+                            TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        for (var food in dietPlan['foodCategories'][category])
+                          Text('- ${food['name']} (${food['calories']} cal)'),
+                      ],
+                    ),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
