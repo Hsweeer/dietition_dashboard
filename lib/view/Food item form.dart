@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../utils/app-colors.dart';
+import 'Diet plan form.dart';
 
 class FoodItemsMasterScreen extends StatefulWidget {
-  final String selectedClientId;
   final String dietPlan;
   final TimeOfDay breakfastTime;
   final TimeOfDay lunchTime;
@@ -14,7 +14,6 @@ class FoodItemsMasterScreen extends StatefulWidget {
 
   const FoodItemsMasterScreen({
     Key? key,
-    required this.selectedClientId,
     required this.dietPlan,
     required this.breakfastTime,
     required this.lunchTime,
@@ -68,37 +67,53 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
     });
   }
 
-  Future<void> saveDietPlan() async {
-    try {
-      final data = {
-        'dietPlan': widget.dietPlan,
-        'mealTimes': {
-          'breakfast': widget.breakfastTime.format(context),
-          'lunch': widget.lunchTime.format(context),
-          'dinner': widget.dinnerTime.format(context),
-        },
-        'expiryDates': {
-          'dietPlanExpiryDate': widget.dietPlanExpiryDate?.toIso8601String(),
-          'planExpiryDate': widget.planExpiryDate?.toIso8601String(),
-        },
-        'foodCategories': foodCategories,
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.selectedClientId)
-          .collection('dietPlans')
-          .add(data);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Diet Plan saved successfully!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving diet plan: $e')),
-      );
-    }
+  void saveDietPlan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DietPlanScreen(
+          dietPlan: widget.dietPlan,
+          breakfastTime: widget.breakfastTime,
+          lunchTime: widget.lunchTime,
+          dinnerTime: widget.dinnerTime,
+          dietPlanExpiryDate: widget.dietPlanExpiryDate,
+          planExpiryDate: widget.planExpiryDate,
+          foodCategories: foodCategories,
+        ),
+      ),
+    );
   }
+  // Future<void> saveDietPlan() async {
+  //   try {
+  //     final data = {
+  //       'dietPlan': widget.dietPlan,
+  //       'mealTimes': {
+  //         'breakfast': widget.breakfastTime.format(context),
+  //         'lunch': widget.lunchTime.format(context),
+  //         'dinner': widget.dinnerTime.format(context),
+  //       },
+  //       'expiryDates': {
+  //         'dietPlanExpiryDate': widget.dietPlanExpiryDate?.toIso8601String(),
+  //         'planExpiryDate': widget.planExpiryDate?.toIso8601String(),
+  //       },
+  //       'foodCategories': foodCategories,
+  //     };
+  //
+  //     await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(widget.selectedClientId)
+  //         .collection('dietPlans')
+  //         .add(data);
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Diet Plan saved successfully!')),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error saving diet plan: $e')),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

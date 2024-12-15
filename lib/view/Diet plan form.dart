@@ -1,7 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/app-colors.dart';
 
 class DietPlanScreen extends StatefulWidget {
+  final String dietPlan;
+  final TimeOfDay breakfastTime;
+  final TimeOfDay lunchTime;
+  final TimeOfDay dinnerTime;
+  final DateTime? dietPlanExpiryDate;
+  final DateTime? planExpiryDate;
+  final Map<String, List<Map<String, dynamic>>> foodCategories;
+
+  const DietPlanScreen({
+    Key? key,
+    required this.dietPlan,
+    required this.breakfastTime,
+    required this.lunchTime,
+    required this.dinnerTime,
+    required this.dietPlanExpiryDate,
+    required this.planExpiryDate,
+    required this.foodCategories,
+  }) : super(key: key);
+
   @override
   _DietPlanScreenState createState() => _DietPlanScreenState();
 }
@@ -133,22 +153,53 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
             // Save Button
             Center(
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_dietPlanNameController.text.isNotEmpty &&
                       _dietPlanType != null &&
                       ((_dietPlanType == 'Weekly' && _weeksDuration != null) ||
                           (_dietPlanType == 'Monthly' && _monthsDuration != null))) {
-                    final planCost = _dietPlanCostController.text.isEmpty
-                        ? '0'
-                        : _dietPlanCostController.text;
-                    final expiry = _isFreePlan ? _weeksDuration : 'N/A';
+                    try {
+                      final planCost = _dietPlanCostController.text.isEmpty
+                          ? '0'
+                          : _dietPlanCostController.text;
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Diet Plan Saved Successfully! Cost: $planCost, Expiry: $expiry'),
-                      ),
-                    );
+                      // Consolidate data from all pages
+                      final masterDietPlan = {
+                        'dietPlan': widget.dietPlan,
+                        'mealTimes': {
+                          'breakfast': widget.breakfastTime.format(context),
+                          'lunch': widget.lunchTime.format(context),
+                          'dinner': widget.dinnerTime.format(context),
+                        },
+                        'expiryDates': {
+                          'dietPlanExpiryDate': widget.dietPlanExpiryDate?.toIso8601String(),
+                          'planExpiryDate': widget.planExpiryDate?.toIso8601String(),
+                        },
+                        'foodCategories': widget.foodCategories,
+                        'additionalPlanDetails': {
+                          'dietPlanName': _dietPlanNameController.text,
+                          'cost': planCost,
+                          'type': _dietPlanType,
+                          'duration': _dietPlanType == 'Weekly' ? _weeksDuration : _monthsDuration,
+                          'isFreePlan': _isFreePlan,
+                        },
+                      };
+
+                      // Save to Firebase
+                      await FirebaseFirestore.instance
+                          .collection('MasterDietPlans')
+                          .add(masterDietPlan);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Master Diet Plan saved successfully!')),
+                      );
+
+                      Navigator.pop(context); // Optionally navigate elsewhere
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error saving diet plan: $e')),
+                      );
+                    }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Please fill in all fields')),
@@ -165,9 +216,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
                 child: Text(
                   'Save Diet Plan',
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600),
+                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),

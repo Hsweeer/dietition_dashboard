@@ -12,6 +12,7 @@ import 'Assign Diet plan.dart';
 import 'Diet plan form.dart';
 import 'Food item form.dart';
 import 'Subscription plans.dart';
+import 'master_plan.dart';
 
 
 class AdminPanel extends StatelessWidget {
@@ -114,13 +115,15 @@ class AdminPanel extends StatelessWidget {
         return AssignDietPlanScreen();
 
       case 2:
-        return FoodItemsMasterScreen(selectedClientId: '', dietPlan: '', breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime,);
+        return FoodItemsMasterScreen( dietPlan: '', breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime,);
         // return FoodItemsMasterScreen(clientUid: '', clientName: '', dietPlan: '', breakfastTime: '', lunchTime: '', dinnerTime: '', planExpiryDate: null, dietPlanExpiryDate: null,);
 
       case 3:
-        return DietPlanScreen();
+        return DietPlanScreen( dietPlan: '', breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime, dietPlanExpiryDate: null, planExpiryDate: null, foodCategories: {},);
       case 4:
         return SubscriptionPlanScreen();
+        case 5:
+        return DietPlansScreen();
 
       default:
         return Container();
