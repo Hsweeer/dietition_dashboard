@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/app-colors.dart';
-
+import 'master_plan.dart';
 class DietPlanScreen extends StatefulWidget {
-  final String dietPlan;
   final TimeOfDay breakfastTime;
   final TimeOfDay lunchTime;
   final TimeOfDay dinnerTime;
-  final DateTime? dietPlanExpiryDate;
-  final DateTime? planExpiryDate;
+  final int dietPlanDays; // Add dietPlanDays parameter
   final Map<String, List<Map<String, dynamic>>> foodCategories;
 
   const DietPlanScreen({
     Key? key,
-    required this.dietPlan,
     required this.breakfastTime,
     required this.lunchTime,
     required this.dinnerTime,
-    required this.dietPlanExpiryDate,
-    required this.planExpiryDate,
+    required this.dietPlanDays, // Mark as required
     required this.foodCategories,
   }) : super(key: key);
 
   @override
   _DietPlanScreenState createState() => _DietPlanScreenState();
 }
+
+
 
 class _DietPlanScreenState extends State<DietPlanScreen> {
   final _dietPlanNameController = TextEditingController();
@@ -165,23 +163,20 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
 
                       // Consolidate data from all pages
                       final masterDietPlan = {
-                        'dietPlan': widget.dietPlan,
                         'mealTimes': {
                           'breakfast': widget.breakfastTime.format(context),
                           'lunch': widget.lunchTime.format(context),
                           'dinner': widget.dinnerTime.format(context),
                         },
-                        'expiryDates': {
-                          'dietPlanExpiryDate': widget.dietPlanExpiryDate?.toIso8601String(),
-                          'planExpiryDate': widget.planExpiryDate?.toIso8601String(),
-                        },
+                        'durationInDays': widget.dietPlanDays,
                         'foodCategories': widget.foodCategories,
                         'additionalPlanDetails': {
                           'dietPlanName': _dietPlanNameController.text,
                           'cost': planCost,
                           'type': _dietPlanType,
-                          'duration': _dietPlanType == 'Weekly' ? _weeksDuration : _monthsDuration,
                           'isFreePlan': _isFreePlan,
+                          'weeksDuration': _dietPlanType == 'Weekly' ? _weeksDuration : null, // Store weeks
+                          'monthsDuration': _dietPlanType == 'Monthly' ? _monthsDuration : null, // Store months
                         },
                       };
 
@@ -194,7 +189,11 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
                         SnackBar(content: Text('Master Diet Plan saved successfully!')),
                       );
 
-                      Navigator.pop(context); // Optionally navigate elsewhere
+                      // Navigate to DietPlansScreen
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => DietPlansScreenmaster()),
+                      );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error saving diet plan: $e')),
@@ -206,6 +205,7 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
                     );
                   }
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(

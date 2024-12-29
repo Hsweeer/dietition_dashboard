@@ -115,15 +115,15 @@ class AdminPanel extends StatelessWidget {
         return AssignDietPlanScreen();
 
       case 2:
-        return FoodItemsMasterScreen( dietPlan: '', breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime,);
+        return FoodItemsMasterScreen(  breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime, dietPlanDays: 0,);
         // return FoodItemsMasterScreen(clientUid: '', clientName: '', dietPlan: '', breakfastTime: '', lunchTime: '', dinnerTime: '', planExpiryDate: null, dietPlanExpiryDate: null,);
 
       case 3:
-        return DietPlanScreen( dietPlan: '', breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime, dietPlanExpiryDate: null, planExpiryDate: null, foodCategories: {},);
+        return DietPlanScreen(  breakfastTime: selectedLunchTime, lunchTime: selectedLunchTime, dinnerTime: selectedLunchTime,  foodCategories: {}, dietPlanDays: 0,);
       case 4:
         return SubscriptionPlanScreen();
         case 5:
-        return DietPlansScreen();
+        return DietPlansScreenmaster();
 
       default:
         return Container();

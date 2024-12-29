@@ -1,6 +1,558 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+//
+// import '../utils/app-colors.dart';
+// import 'Food item form.dart';
+//
+// class AssignDietPlanScreen extends StatefulWidget {
+//   @override
+//   _AssignDietPlanScreenState createState() => _AssignDietPlanScreenState();
+// }
+//
+// class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
+//   // List of clients fetched from Firestore
+//   List<String> clientsList = [];
+//   List<String> clientIds = [];
+//   String? selectedClient;
+//   String? selectedClientId;
+//
+//   // List of diet plans
+//   final List<String> dietPlans = ['Platinum', 'Gold', 'Custom'];
+//   String? selectedDietPlan;
+//
+//   // Time pickers
+//   TimeOfDay selectedBreakfastTime = TimeOfDay(hour: 7, minute: 0);
+//   TimeOfDay selectedLunchTime = TimeOfDay(hour: 12, minute: 0);
+//   TimeOfDay selectedDinnerTime = TimeOfDay(hour: 19, minute: 0);
+//
+//   // Expiry dates
+//   DateTime? planExpiryDate;
+//   DateTime? dietPlanExpiryDate;
+//
+//   // @override
+//   // void initState() {
+//   //   super.initState();
+//   //   fetchClients();
+//   // }
+//   //
+//   // // Fetch clients from Firestore
+//   // Future<void> fetchClients() async {
+//   //   try {
+//   //     final querySnapshot = await FirebaseFirestore.instance.collection('users').get();
+//   //     setState(() {
+//   //       // Ensure that lists are populated correctly
+//   //       clientsList = querySnapshot.docs.map((doc) => doc['name'] as String).toSet().toList();
+//   //       clientIds = querySnapshot.docs.map((doc) => doc.id).toSet().toList();
+//   //
+//   //       // Reset the selection to prevent mismatches
+//   //       selectedClient = null;
+//   //       selectedClientId = null;
+//   //     });
+//   //   } catch (e) {
+//   //     print('Error fetching clients: $e');
+//   //   }
+//   // }
+//
+//   // Function to show time picker for meals
+//   Future<void> _selectMealTime(BuildContext context, String mealType) async {
+//     final TimeOfDay? newTime = await showTimePicker(
+//       context: context,
+//       initialTime: mealType == 'Breakfast'
+//           ? selectedBreakfastTime
+//           : mealType == 'Lunch'
+//           ? selectedLunchTime
+//           : selectedDinnerTime,
+//     );
+//     if (newTime != null) {
+//       setState(() {
+//         if (mealType == 'Breakfast') {
+//           selectedBreakfastTime = newTime;
+//         } else if (mealType == 'Lunch') {
+//           selectedLunchTime = newTime;
+//         } else if (mealType == 'Dinner') {
+//           selectedDinnerTime = newTime;
+//         }
+//       });
+//     }
+//   }
+//
+//   // Function to show date picker for expiry dates
+//   Future<void> _selectExpiryDate(BuildContext context, String type) async {
+//     final DateTime? newDate = await showDatePicker(
+//       context: context,
+//       initialDate: DateTime.now(),
+//       firstDate: DateTime(2000),
+//       lastDate: DateTime(2101),
+//     );
+//     if (newDate != null) {
+//       setState(() {
+//         if (type == 'plan') {
+//           planExpiryDate = newDate;
+//         } else if (type == 'dietPlan') {
+//           dietPlanExpiryDate = newDate;
+//         }
+//       });
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       body: SingleChildScrollView(
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             // Header
+//             Container(
+//               height: 45,
+//               width: double.infinity,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(12),
+//                 color: AppColors.primary,
+//               ),
+//               child: Center(
+//                 child: Text(
+//                   'Assign Diet Plan',
+//                   style: TextStyle(
+//                     color: Colors.white,
+//                     fontSize: 24,
+//                     fontWeight: FontWeight.w600,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             SizedBox(height: 30),
+//             Padding(
+//               padding: const EdgeInsets.all(20),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   // // Client Selection
+//                   // Text('Select Client:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+//                   // Container(
+//                   //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//                   //   margin: EdgeInsets.only(top: 8, bottom: 20),
+//                   //   decoration: BoxDecoration(
+//                   //     color: Colors.white,
+//                   //     borderRadius: BorderRadius.circular(8),
+//                   //     boxShadow: [
+//                   //       BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+//                   //     ],
+//                   //   ),
+//                   //   child: DropdownButton<String>(
+//                   //     hint: Text('Select Client', style: TextStyle(color: Colors.grey[600])),
+//                   //     value: selectedClient,
+//                   //     onChanged: (newValue) {
+//                   //       setState(() {
+//                   //         selectedClient = newValue;
+//                   //
+//                   //         // Safely map the selected client to its ID
+//                   //         final index = clientsList.indexOf(newValue!);
+//                   //         selectedClientId = index != -1 ? clientIds[index] : null;
+//                   //       });
+//                   //     },
+//                   //     isExpanded: true,
+//                   //     items: clientsList.map((client) {
+//                   //       return DropdownMenuItem<String>(
+//                   //         value: client,
+//                   //         child: Text(client, style: TextStyle(fontSize: 16)),
+//                   //       );
+//                   //     }).toList(),
+//                   //     dropdownColor: Colors.white,
+//                   //     underline: SizedBox(),
+//                   //   )
+//                   //
+//                   // ),
+//                   // Diet Plan Selection
+//                   Text('Select Diet Plan:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+//                   Container(
+//                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//                     margin: EdgeInsets.only(top: 8, bottom: 20),
+//                     decoration: BoxDecoration(
+//                       color: Colors.white,
+//                       borderRadius: BorderRadius.circular(8),
+//                       boxShadow: [
+//                         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+//                       ],
+//                     ),
+//                     child: DropdownButton<String>(
+//                       hint: Text('Select Diet Plan', style: TextStyle(color: Colors.grey[600])),
+//                       value: selectedDietPlan,
+//                       onChanged: (newValue) {
+//                         setState(() {
+//                           selectedDietPlan = newValue;
+//                         });
+//                       },
+//                       isExpanded: true,
+//                       items: dietPlans.map((plan) {
+//                         return DropdownMenuItem<String>(
+//                           value: plan,
+//                           child: Text(plan, style: TextStyle(fontSize: 16)),
+//                         );
+//                       }).toList(),
+//                       dropdownColor: Colors.white,
+//                       underline: SizedBox(),
+//                     ),
+//                   ),
+//                   // Meal Times Selection
+//                   _buildMealTimePicker('Breakfast', selectedBreakfastTime),
+//                   _buildMealTimePicker('Lunch', selectedLunchTime),
+//                   _buildMealTimePicker('Dinner', selectedDinnerTime),
+//                   // Expiry Date Pickers
+//                   _buildExpiryDatePicker('Diet Plan Expiry Date', dietPlanExpiryDate, 'dietPlan'),
+//                   _buildExpiryDatePicker('Plan Expiry Date', planExpiryDate, 'plan'),
+//                   SizedBox(height: 30),
+//                   // Assign Button
+//                   Container(
+//                     width: double.infinity,
+//                     child: ElevatedButton(
+//                       style: ElevatedButton.styleFrom(
+//                         padding: EdgeInsets.symmetric(vertical: 16),
+//                         backgroundColor: AppColors.primary,
+//                         shape: RoundedRectangleBorder(
+//                           borderRadius: BorderRadius.circular(12),
+//                         ),
+//                       ),
+//                       onPressed: () {
+//                         if (selectedDietPlan != null ) {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                               builder: (context) => FoodItemsMasterScreen(
+//                                 dietPlan: selectedDietPlan!,
+//                                 breakfastTime: selectedBreakfastTime,
+//                                 lunchTime: selectedLunchTime,
+//                                 dinnerTime: selectedDinnerTime,
+//                                 dietPlanExpiryDate: dietPlanExpiryDate,
+//                                 planExpiryDate: planExpiryDate,
+//                               ),
+//                             ),
+//                           );
+//                         } else {
+//                           ScaffoldMessenger.of(context).showSnackBar(
+//                             SnackBar(content: Text('Please select a client and a diet plan')),
+//                           );
+//                         }
+//                       },
+//                       child: Text('Select Food for the Client',
+//                           style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   // Helper method to create time pickers for meals
+//   Widget _buildMealTimePicker(String mealType, TimeOfDay selectedTime) {
+//     return Padding(
+//       padding: const EdgeInsets.only(bottom: 20),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text('$mealType Time:', style: TextStyle(fontSize: 16)),
+//           Container(
+//             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//             margin: EdgeInsets.only(top: 8),
+//             decoration: BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(8),
+//               boxShadow: [
+//                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+//               ],
+//             ),
+//             child: ElevatedButton(
+//               onPressed: () => _selectMealTime(context, mealType),
+//               child: Text('Select $mealType Time (${selectedTime.format(context)})'),
+//               style: ElevatedButton.styleFrom(
+//                 foregroundColor: Colors.white, backgroundColor: AppColors.primary,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   // Helper method to create expiry date pickers
+//   Widget _buildExpiryDatePicker(String label, DateTime? expiryDate, String type) {
+//     return Padding(
+//       padding: const EdgeInsets.only(bottom: 20),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(label, style: TextStyle(fontSize: 16)),
+//           Container(
+//             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//             margin: EdgeInsets.only(top: 8),
+//             decoration: BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(8),
+//               boxShadow: [
+//                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+//               ],
+//             ),
+//             child: ElevatedButton(
+//               onPressed: () => _selectExpiryDate(context, type),
+//               child: Text(
+//                 expiryDate != null
+//                     ? '${expiryDate.toLocal()}'.split(' ')[0]
+//                     : 'Select Expiry Date',
+//                 style: TextStyle(fontSize: 16),
+//               ),
+//               style: ElevatedButton.styleFrom(
+//                 foregroundColor: Colors.white, backgroundColor: AppColors.primary,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
+
+// import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+//
+// import '../utils/app-colors.dart';
+// import 'Food item form.dart';
+//
+// class AssignDietPlanScreen extends StatefulWidget {
+//   @override
+//   _AssignDietPlanScreenState createState() => _AssignDietPlanScreenState();
+// }
+//
+// class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
+//   // List of clients fetched from Firestore
+//   List<String> clientsList = [];
+//   List<String> clientIds = [];
+//   String? selectedClient;
+//   String? selectedClientId;
+//
+//   // List of diet plans
+//   final List<String> dietPlans = ['Platinum', 'Gold', 'Custom'];
+//   String? selectedDietPlan;
+//
+//   // Time pickers
+//   TimeOfDay selectedBreakfastTime = TimeOfDay(hour: 7, minute: 0);
+//   TimeOfDay selectedLunchTime = TimeOfDay(hour: 12, minute: 0);
+//   TimeOfDay selectedDinnerTime = TimeOfDay(hour: 19, minute: 0);
+//
+//   // Expiry dates
+//   DateTime? planExpiryDate;
+//   DateTime? dietPlanExpiryDate;
+//
+//   Future<void> _selectMealTime(BuildContext context, String mealType) async {
+//     final TimeOfDay? newTime = await showTimePicker(
+//       context: context,
+//       initialTime: mealType == 'Breakfast'
+//           ? selectedBreakfastTime
+//           : mealType == 'Lunch'
+//           ? selectedLunchTime
+//           : selectedDinnerTime,
+//     );
+//     if (newTime != null) {
+//       setState(() {
+//         if (mealType == 'Breakfast') {
+//           selectedBreakfastTime = newTime;
+//         } else if (mealType == 'Lunch') {
+//           selectedLunchTime = newTime;
+//         } else if (mealType == 'Dinner') {
+//           selectedDinnerTime = newTime;
+//         }
+//       });
+//     }
+//   }
+//
+//   // Function to show date picker for expiry dates
+//   Future<void> _selectExpiryDate(BuildContext context, String type) async {
+//     final DateTime? newDate = await showDatePicker(
+//       context: context,
+//       initialDate: DateTime.now(),
+//       firstDate: DateTime(2000),
+//       lastDate: DateTime(2101),
+//     );
+//     if (newDate != null) {
+//       setState(() {
+//         if (type == 'plan') {
+//           planExpiryDate = newDate;
+//         } else if (type == 'dietPlan') {
+//           dietPlanExpiryDate = newDate;
+//         }
+//       });
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       body: SingleChildScrollView(
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             // Header
+//             Container(
+//               height: 45,
+//               width: double.infinity,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(12),
+//                 color: AppColors.primary,
+//               ),
+//               child: Center(
+//                 child: Text(
+//                   'Assign Diet Plan',
+//                   style: TextStyle(
+//                     color: Colors.white,
+//                     fontSize: 24,
+//                     fontWeight: FontWeight.w600,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             SizedBox(height: 30),
+//             Padding(
+//               padding: const EdgeInsets.all(20),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   _buildMealTimePicker('Breakfast', selectedBreakfastTime),
+//                   _buildMealTimePicker('Lunch', selectedLunchTime),
+//                   _buildMealTimePicker('Dinner', selectedDinnerTime),
+//                   // Expiry Date Pickers
+//                   _buildExpiryDatePicker('Diet Plan Expiry Date', dietPlanExpiryDate, 'dietPlan'),
+//                   _buildExpiryDatePicker('Plan Expiry Date', planExpiryDate, 'plan'),
+//                   SizedBox(height: 30),
+//                   // Assign Button
+//                   Container(
+//                     width: double.infinity,
+//                     child: ElevatedButton(
+//                       style: ElevatedButton.styleFrom(
+//                         padding: EdgeInsets.symmetric(vertical: 16),
+//                         backgroundColor: AppColors.primary,
+//                         shape: RoundedRectangleBorder(
+//                           borderRadius: BorderRadius.circular(12),
+//                         ),
+//                       ),
+//                       onPressed: () {
+//                         if (selectedBreakfastTime != null ) {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                               builder: (context) => FoodItemsMasterScreen(
+//                                 breakfastTime: selectedBreakfastTime,
+//                                 lunchTime: selectedLunchTime,
+//                                 dinnerTime: selectedDinnerTime,
+//                                 dietPlanExpiryDate: dietPlanExpiryDate,
+//                                 planExpiryDate: planExpiryDate,
+//                               ),
+//                             ),
+//                           );
+//                         } else {
+//                           ScaffoldMessenger.of(context).showSnackBar(
+//                             SnackBar(content: Text('Please select a client and a diet plan')),
+//                           );
+//                         }
+//                       },
+//                       child: Text('Select Food for the Client',
+//                           style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   // Helper method to create time pickers for meals
+//   Widget _buildMealTimePicker(String mealType, TimeOfDay selectedTime) {
+//     return Padding(
+//       padding: const EdgeInsets.only(bottom: 20),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text('$mealType Time:', style: TextStyle(fontSize: 16)),
+//           Container(
+//             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//             margin: EdgeInsets.only(top: 8),
+//             decoration: BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(8),
+//               boxShadow: [
+//                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+//               ],
+//             ),
+//             child: ElevatedButton(
+//               onPressed: () => _selectMealTime(context, mealType),
+//               child: Text('Select $mealType Time (${selectedTime.format(context)})'),
+//               style: ElevatedButton.styleFrom(
+//                 foregroundColor: Colors.white, backgroundColor: AppColors.primary,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   // Helper method to create expiry date pickers
+//   Widget _buildExpiryDatePicker(String label, DateTime? expiryDate, String type) {
+//     return Padding(
+//       padding: const EdgeInsets.only(bottom: 20),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(label, style: TextStyle(fontSize: 16)),
+//           Container(
+//             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//             margin: EdgeInsets.only(top: 8),
+//             decoration: BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(8),
+//               boxShadow: [
+//                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+//               ],
+//             ),
+//             child: ElevatedButton(
+//               onPressed: () => _selectExpiryDate(context, type),
+//               child: Text(
+//                 expiryDate != null
+//                     ? '${expiryDate.toLocal()}'.split(' ')[0]
+//                     : 'Select Expiry Date',
+//                 style: TextStyle(fontSize: 16),
+//               ),
+//               style: ElevatedButton.styleFrom(
+//                 foregroundColor: Colors.white, backgroundColor: AppColors.primary,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+import 'package:flutter/material.dart';
 import '../utils/app-colors.dart';
 import 'Food item form.dart';
 
@@ -10,12 +562,6 @@ class AssignDietPlanScreen extends StatefulWidget {
 }
 
 class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
-  // List of clients fetched from Firestore
-  List<String> clientsList = [];
-  List<String> clientIds = [];
-  String? selectedClient;
-  String? selectedClientId;
-
   // List of diet plans
   final List<String> dietPlans = ['Platinum', 'Gold', 'Custom'];
   String? selectedDietPlan;
@@ -25,33 +571,8 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
   TimeOfDay selectedLunchTime = TimeOfDay(hour: 12, minute: 0);
   TimeOfDay selectedDinnerTime = TimeOfDay(hour: 19, minute: 0);
 
-  // Expiry dates
-  DateTime? planExpiryDate;
-  DateTime? dietPlanExpiryDate;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchClients();
-  // }
-  //
-  // // Fetch clients from Firestore
-  // Future<void> fetchClients() async {
-  //   try {
-  //     final querySnapshot = await FirebaseFirestore.instance.collection('users').get();
-  //     setState(() {
-  //       // Ensure that lists are populated correctly
-  //       clientsList = querySnapshot.docs.map((doc) => doc['name'] as String).toSet().toList();
-  //       clientIds = querySnapshot.docs.map((doc) => doc.id).toSet().toList();
-  //
-  //       // Reset the selection to prevent mismatches
-  //       selectedClient = null;
-  //       selectedClientId = null;
-  //     });
-  //   } catch (e) {
-  //     print('Error fetching clients: $e');
-  //   }
-  // }
+  // Controller for diet plan availability days
+  final TextEditingController daysController = TextEditingController();
 
   // Function to show time picker for meals
   Future<void> _selectMealTime(BuildContext context, String mealType) async {
@@ -71,25 +592,6 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
           selectedLunchTime = newTime;
         } else if (mealType == 'Dinner') {
           selectedDinnerTime = newTime;
-        }
-      });
-    }
-  }
-
-  // Function to show date picker for expiry dates
-  Future<void> _selectExpiryDate(BuildContext context, String type) async {
-    final DateTime? newDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (newDate != null) {
-      setState(() {
-        if (type == 'plan') {
-          planExpiryDate = newDate;
-        } else if (type == 'dietPlan') {
-          dietPlanExpiryDate = newDate;
         }
       });
     }
@@ -128,8 +630,8 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // // Client Selection
-                  // Text('Select Client:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  // // Diet Plan Selection
+                  // Text('Select Diet Plan:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   // Container(
                   //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   //   margin: EdgeInsets.only(top: 8, bottom: 20),
@@ -141,34 +643,33 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
                   //     ],
                   //   ),
                   //   child: DropdownButton<String>(
-                  //     hint: Text('Select Client', style: TextStyle(color: Colors.grey[600])),
-                  //     value: selectedClient,
+                  //     hint: Text('Select Diet Plan', style: TextStyle(color: Colors.grey[600])),
+                  //     value: selectedDietPlan,
                   //     onChanged: (newValue) {
                   //       setState(() {
-                  //         selectedClient = newValue;
-                  //
-                  //         // Safely map the selected client to its ID
-                  //         final index = clientsList.indexOf(newValue!);
-                  //         selectedClientId = index != -1 ? clientIds[index] : null;
+                  //         selectedDietPlan = newValue;
                   //       });
                   //     },
                   //     isExpanded: true,
-                  //     items: clientsList.map((client) {
+                  //     items: dietPlans.map((plan) {
                   //       return DropdownMenuItem<String>(
-                  //         value: client,
-                  //         child: Text(client, style: TextStyle(fontSize: 16)),
+                  //         value: plan,
+                  //         child: Text(plan, style: TextStyle(fontSize: 16)),
                   //       );
                   //     }).toList(),
                   //     dropdownColor: Colors.white,
                   //     underline: SizedBox(),
-                  //   )
-                  //
+                  //   ),
                   // ),
-                  // Diet Plan Selection
-                  Text('Select Diet Plan:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  // Meal Times Selection
+                  _buildMealTimePicker('Breakfast', selectedBreakfastTime),
+                  _buildMealTimePicker('Lunch', selectedLunchTime),
+                  _buildMealTimePicker('Dinner', selectedDinnerTime),
+                  // Input for Diet Plan Availability Days
+                  Text('Enter Days of Availability:', style: TextStyle(fontSize: 16)),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    margin: EdgeInsets.only(top: 8, bottom: 20),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    margin: EdgeInsets.only(top: 8, bottom: 30),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -176,33 +677,15 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
                         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
                       ],
                     ),
-                    child: DropdownButton<String>(
-                      hint: Text('Select Diet Plan', style: TextStyle(color: Colors.grey[600])),
-                      value: selectedDietPlan,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedDietPlan = newValue;
-                        });
-                      },
-                      isExpanded: true,
-                      items: dietPlans.map((plan) {
-                        return DropdownMenuItem<String>(
-                          value: plan,
-                          child: Text(plan, style: TextStyle(fontSize: 16)),
-                        );
-                      }).toList(),
-                      dropdownColor: Colors.white,
-                      underline: SizedBox(),
+                    child: TextField(
+                      controller: daysController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Enter days (e.g., 30)',
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
-                  // Meal Times Selection
-                  _buildMealTimePicker('Breakfast', selectedBreakfastTime),
-                  _buildMealTimePicker('Lunch', selectedLunchTime),
-                  _buildMealTimePicker('Dinner', selectedDinnerTime),
-                  // Expiry Date Pickers
-                  _buildExpiryDatePicker('Diet Plan Expiry Date', dietPlanExpiryDate, 'dietPlan'),
-                  _buildExpiryDatePicker('Plan Expiry Date', planExpiryDate, 'plan'),
-                  SizedBox(height: 30),
                   // Assign Button
                   Container(
                     width: double.infinity,
@@ -215,23 +698,28 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
                         ),
                       ),
                       onPressed: () {
-                        if (selectedDietPlan != null ) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FoodItemsMasterScreen(
-                                dietPlan: selectedDietPlan!,
-                                breakfastTime: selectedBreakfastTime,
-                                lunchTime: selectedLunchTime,
-                                dinnerTime: selectedDinnerTime,
-                                dietPlanExpiryDate: dietPlanExpiryDate,
-                                planExpiryDate: planExpiryDate,
+                        if ( daysController.text.isNotEmpty) {
+                          final int days = int.tryParse(daysController.text) ?? 0;
+                          if (days > 0) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FoodItemsMasterScreen(
+                                  breakfastTime: selectedBreakfastTime,
+                                  lunchTime: selectedLunchTime,
+                                  dinnerTime: selectedDinnerTime,
+                                  dietPlanDays: days,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Please enter a valid number of days.')),
+                            );
+                          }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Please select a client and a diet plan')),
+                            SnackBar(content: Text('Please select a diet plan and enter availability days.')),
                           );
                         }
                       },
@@ -270,46 +758,8 @@ class _AssignDietPlanScreenState extends State<AssignDietPlanScreen> {
               onPressed: () => _selectMealTime(context, mealType),
               child: Text('Select $mealType Time (${selectedTime.format(context)})'),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper method to create expiry date pickers
-  Widget _buildExpiryDatePicker(String label, DateTime? expiryDate, String type) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: 16)),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            margin: EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed: () => _selectExpiryDate(context, type),
-              child: Text(
-                expiryDate != null
-                    ? '${expiryDate.toLocal()}'.split(' ')[0]
-                    : 'Select Expiry Date',
-                style: TextStyle(fontSize: 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
