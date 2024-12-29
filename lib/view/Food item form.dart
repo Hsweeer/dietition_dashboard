@@ -1,154 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import '../utils/app-colors.dart';
 import 'Diet plan form.dart';
 
-// class FoodItemsMasterScreen extends StatefulWidget {
-//   final TimeOfDay breakfastTime;
-//   final TimeOfDay lunchTime;
-//   final TimeOfDay dinnerTime;
-//   final DateTime? dietPlanExpiryDate;
-//   final DateTime? planExpiryDate;
-//
-//   const FoodItemsMasterScreen({
-//     Key? key,
-//     required this.breakfastTime,
-//     required this.lunchTime,
-//     required this.dinnerTime,
-//     this.dietPlanExpiryDate,
-//     this.planExpiryDate,
-//   }) : super(key: key);
-//
-//   @override
-//   _FoodItemsMasterScreenState createState() => _FoodItemsMasterScreenState();
-// }
-//
-// class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
-//   final Map<String, List<Map<String, dynamic>>> foodCategories = {
-//     'Morning Tea': [],
-//     'Breakfast': [],
-//     'Mid Day Snacks': [],
-//     'Lunch': [],
-//     'Evening Snacks': [],
-//     'Dinner': [],
-//     'Bedtime Snack': [],
-//   };
-//
-//   void addFoodItem(String category) {
-//     setState(() {
-//       foodCategories[category]?.add({
-//         'name': '',
-//         'vegetarian': 'Vegetarian', // Default value
-//         'calories': '',
-//         'images': [],
-//       });
-//     });
-//   }
-//
-//   void removeFoodItem(String category, int index) {
-//     setState(() {
-//       foodCategories[category]?.removeAt(index);
-//     });
-//   }
-//
-//   void updateFoodItem(
-//       String category, int index, String field, dynamic value) {
-//     setState(() {
-//       foodCategories[category]?[index][field] = value;
-//     });
-//   }
-//
-//   void uploadImage(String category, int index, List<String> images) {
-//     setState(() {
-//       foodCategories[category]?[index]['images'] = images;
-//     });
-//   }
-//
-//   void saveDietPlan() {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => DietPlanScreen(
-//           breakfastTime: widget.breakfastTime,
-//           lunchTime: widget.lunchTime,
-//           dinnerTime: widget.dinnerTime,
-//           dietPlanExpiryDate: widget.dietPlanExpiryDate,
-//           planExpiryDate: widget.planExpiryDate,
-//           foodCategories: foodCategories,
-//         ),
-//       ),
-//     );
-//   }
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.white,
-//       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(20),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Container(
-//               height: 45,
-//               width: double.infinity,
-//               decoration: BoxDecoration(
-//                 borderRadius: BorderRadius.circular(12),
-//                 color: AppColors.primary,
-//               ),
-//               child: Center(
-//                 child: Text(
-//                   'Food Items Master',
-//                   style: TextStyle(
-//                     color: Colors.white,
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//             SizedBox(height: 30),
-//             Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 ...foodCategories.entries.map((entry) {
-//                   return FoodCategoryWidget(
-//                     category: entry.key,
-//                     items: entry.value,
-//                     onAddItem: () => addFoodItem(entry.key),
-//                     onRemoveItem: (index) => removeFoodItem(entry.key, index),
-//                     onUpdateItem: (index, field, value) =>
-//                         updateFoodItem(entry.key, index, field, value),
-//                     onUploadImages: (index, images) =>
-//                         uploadImage(entry.key, index, images),
-//                   );
-//                 }).toList(),
-//                 SizedBox(height: 20), // Space between the list and button
-//                 Center(
-//                   child: ElevatedButton(
-//                     style: ElevatedButton.styleFrom(
-//                       padding: EdgeInsets.symmetric(vertical: 16),
-//                       backgroundColor: AppColors.primary,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(12),
-//                       ),
-//                     ),
-//                     onPressed: saveDietPlan,
-//                     child: Text('Save Diet Plan',
-//                         style: TextStyle(
-//                             fontSize: 16,
-//                             color: Colors.white,
-//                             fontWeight: FontWeight.bold)),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 class FoodItemsMasterScreen extends StatefulWidget {
   final TimeOfDay breakfastTime;
@@ -282,8 +139,10 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: saveDietPlan,
-                    child: Text('Save Diet Plan',
+                    onPressed: () {
+                      saveDietPlan();
+                      Get.to(() => DietPlanScreen(breakfastTime: widget.breakfastTime, lunchTime: widget.lunchTime, dinnerTime: widget.dinnerTime, dietPlanDays: widget.dietPlanDays, foodCategories: foodCategories,)); // Replace `NextScreen` with your actual screen widget
+                    },                    child: Text('Save Diet Plan',
                         style: TextStyle(
                             fontSize: 16,
                             color: Colors.white,
@@ -291,6 +150,7 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
                   ),
                 ),
               ],
+
             ),
           ],
         ),

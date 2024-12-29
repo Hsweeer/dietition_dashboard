@@ -221,6 +221,193 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
               ),
             ),
             SizedBox(height: 30),
+            Container(
+            padding: EdgeInsets.all(16),
+    decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(16),
+    boxShadow: [
+    BoxShadow(
+    color: Colors.grey.withOpacity(0.1),
+    spreadRadius: 2,
+    blurRadius: 8,
+    offset: Offset(0, 2),
+    ),
+    ],
+    ),
+    child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    // Breakfast Time
+    Text(
+    'Breakfast Time:',
+    style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    ),
+    ),
+    SizedBox(height: 8),
+    TextField(
+    controller: TextEditingController(
+    text: widget.breakfastTime.format(context)),
+    decoration: InputDecoration(
+    hintText: 'Enter Breakfast Time',
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: BorderSide(color: Colors.blueAccent),
+    ),
+    ),
+    onChanged: (value) {
+    // Handle time change logic here
+    },
+    ),
+    SizedBox(height: 16),
+
+    // Lunch Time
+    Text(
+    'Lunch Time:',
+    style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    ),
+    ),
+    SizedBox(height: 8),
+    TextField(
+    controller: TextEditingController(text: widget.lunchTime.format(context)),
+    decoration: InputDecoration(
+    hintText: 'Enter Lunch Time',
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: BorderSide(color: Colors.blueAccent),
+    ),
+    ),
+    onChanged: (value) {
+    // Handle lunch time change logic here
+    },
+    ),
+    SizedBox(height: 16),
+
+    // Dinner Time
+    Text(
+    'Dinner Time:',
+    style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    ),
+    ),
+    SizedBox(height: 8),
+    TextField(
+    controller: TextEditingController(text: widget.dinnerTime.format(context)),
+    decoration: InputDecoration(
+    hintText: 'Enter Dinner Time',
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: BorderSide(color: Colors.blueAccent),
+    ),
+    ),
+    onChanged: (value) {
+    // Handle dinner time change logic here
+    },
+    ),
+    SizedBox(height: 16),
+
+    // Diet Plan Days
+    Text(
+    'Diet Plan Days:',
+    style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    ),
+    ),
+    SizedBox(height: 8),
+    TextField(
+    controller: TextEditingController(text: widget.dietPlanDays.toString()),
+    keyboardType: TextInputType.number,
+    decoration: InputDecoration(
+    hintText: 'Enter Diet Plan Days',
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: BorderSide(color: Colors.blueAccent),
+    ),
+    ),
+    onChanged: (value) {
+    // Handle diet plan days change logic here
+    },
+    ),
+    SizedBox(height: 16),
+
+    // Food Categories Section
+    Text(
+    'Food Categories:',
+    style: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    ),
+    ),
+    SizedBox(height: 8),
+    widget.foodCategories.isEmpty
+    ? Text(
+    'No food categories available.',
+    style: TextStyle(
+    fontSize: 14,
+    color: Colors.grey,
+    ),
+    )
+        : ListView.builder(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    itemCount: widget.foodCategories.length,
+    itemBuilder: (context, index) {
+    var category = widget.foodCategories.keys.elementAt(index);
+    var items = widget.foodCategories[category];
+
+    return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    Text(
+    category,
+    style: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.blueAccent,
+    ),
+    ),
+    SizedBox(height: 8),
+    ListView.builder(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    itemCount: items?.length ?? 0,
+    itemBuilder: (context, itemIndex) {
+    var foodItem = items?[itemIndex];
+    return TextField(
+    controller: TextEditingController(
+    text: foodItem?['name'] ?? 'Unnamed Food'),
+    decoration: InputDecoration(
+    hintText: 'Enter Food Item Name',
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(8),
+    borderSide: BorderSide(color: Colors.blueAccent),
+    ),
+    ),
+    onChanged: (value) {
+    foodItem?['name'] = value; // Update the food name
+    },
+    );
+    },
+    ),
+    SizedBox(height: 16),
+    ],
+    );
+    },
+    ),
+    ],
+    ),
+    ),
 
             // Footer message or tips
             Center(
