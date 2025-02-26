@@ -12,6 +12,7 @@ import 'Assign Diet plan.dart';
 import 'Diet plan form.dart';
 import 'Food item form.dart';
 import 'Subscription plans.dart';
+import 'admin_dashbord.dart';
 import 'master_plan.dart';
 
 
@@ -124,6 +125,8 @@ class AdminPanel extends StatelessWidget {
         return SubscriptionPlanScreen();
         case 5:
         return DietPlansScreenmaster();
+case 6:
+        return AdminDashboard();
 
       default:
         return Container();

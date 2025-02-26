@@ -21,7 +21,7 @@ class Slidebar extends StatelessWidget {
         _SidebarButton(label: 'Create Diet Plan', icon: Icons.add, index: 3),
         _SidebarButton(label: 'Subscription Plans', icon: Icons.unsubscribe, index: 4),
         _SidebarButton(label: 'DietPlansScreen', icon: Icons.history, index: 5),
-        _SidebarButton(label: 'Settings', icon: Icons.settings, index: 6),
+        _SidebarButton(label: 'Admin Dashbord', icon: Icons.dashboard, index: 6),
       ],
     );
   }

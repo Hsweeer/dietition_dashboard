@@ -1,28 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../Images_const/images_const.dart';
 import '../utils/app-colors.dart';
-import 'Admin_panel.dart'; // Import your AdminPanel screen
+import 'Admin_panel.dart';
 
 class LoginScreen extends StatelessWidget {
   // Text controllers for capturing user input
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // Static login credentials
-  final String staticEmail = 'admin@gmail.com';
-  final String staticPassword = 'password123';
+  // Login function using Firebase Authentication
+  void loginUser() async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
 
+    if (email.isEmpty || password.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Email and Password cannot be empty',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
-  // Login function using static credentials
-  void loginUser() {
-    if (emailController.text == staticEmail && passwordController.text == staticPassword) {
-      Get.to(AdminPanel());
-    } else {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user != null) {
+        Get.off(() => AdminPanel()); // Navigate to Admin Panel on success
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = e.message ?? 'Login failed';
       Get.snackbar(
         'Login Failed',
-        'Incorrect email or password',
+        errorMessage,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -41,8 +56,8 @@ class LoginScreen extends StatelessWidget {
               Column(
                 children: [
                   Image.asset(logo, height: 80), // Replace with your logo path
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     'Dietition',
                     style: TextStyle(
                       fontSize: 24,
@@ -52,19 +67,19 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               Container(
                 width: 400,
-                padding: EdgeInsets.all(36),
+                padding: const EdgeInsets.all(36),
                 decoration: BoxDecoration(
-                  color: AppColors.primary, // Update with your AppColors.purple if needed
+                  color: AppColors.primary, // Your primary color
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
+                    const Text(
                       'Admin Login',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -73,10 +88,10 @@ class LoginScreen extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     TextField(
                       controller: emailController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.email, color: Colors.white),
                         labelText: 'Email',
                         labelStyle: TextStyle(color: Colors.white),
@@ -87,13 +102,13 @@ class LoginScreen extends StatelessWidget {
                           borderSide: BorderSide(color: Colors.white),
                         ),
                       ),
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.lock, color: Colors.white),
                         suffixIcon: Icon(Icons.visibility, color: Colors.white),
                         labelText: 'Password',
@@ -105,21 +120,21 @@ class LoginScreen extends StatelessWidget {
                           borderSide: BorderSide(color: Colors.white),
                         ),
                       ),
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    SizedBox(height: 32),
+                    const SizedBox(height: 32),
                     ElevatedButton(
                       onPressed: () {
                         loginUser();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Login',
                         style: TextStyle(
                           color: Colors.black,

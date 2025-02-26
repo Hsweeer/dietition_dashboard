@@ -1,82 +1,130 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../controllers/user_controller.dart';
+
+// class User {
+//   final String name;
+//   final String userId;
+//   final String email;
+//   final String gender;
+//   final String phone;
+//   String status;
+//   String subscriptionType;
+//   bool dietPlanAccess;
+//   bool loginEnabled;
+//   Map<String, dynamic>? assignedDietPlan;
+//   int totalWeeksOpted; // New field to track total weeks opted for
+//   List<int> assignedWeeks; // New field to track already assigned weeks
+//
+//   User({
+//     required this.name,
+//     required this.userId,
+//     required this.email,
+//     required this.gender,
+//     required this.phone,
+//     this.status = 'Active',
+//     this.subscriptionType = 'Free',
+//     this.dietPlanAccess = true,
+//     this.loginEnabled = true,
+//     this.assignedDietPlan,
+//     this.totalWeeksOpted = 0, // Default to 0 weeks
+//     this.assignedWeeks = const [], // Default to no weeks assigned
+//   });
+//
+//   factory User.fromFirestore(Map<String, dynamic> data, String userId) {
+//     return User(
+//       name: data['name'] ?? '',
+//       userId: userId,
+//       email: data['email'] ?? '',
+//       phone: data['phone'] ?? 'N/A',
+//       gender: data['gender'] ?? 'Customer',
+//       status: data['status'] ?? 'Active',
+//       subscriptionType: data['subscriptionType'] ?? 'Free',
+//       dietPlanAccess: data['dietPlanAccess'] ?? true,
+//       loginEnabled: data['loginEnabled'] ?? true,
+//       assignedDietPlan: data['assignedDietPlan'],
+//       totalWeeksOpted: data['totalWeeksOpted'] ?? 0,
+//       assignedWeeks: List<int>.from(data['assignedWeeks'] ?? []),
+//     );
+//   }
+//
+//   Map<String, dynamic> toFirestore() {
+//     return {
+//       'name': name,
+//       'email': email,
+//       'phone': phone,
+//       'gender': gender,
+//       'status': status,
+//       'subscriptionType': subscriptionType,
+//       'dietPlanAccess': dietPlanAccess,
+//       'loginEnabled': loginEnabled,
+//       'assignedDietPlan': assignedDietPlan,
+//       'totalWeeksOpted': totalWeeksOpted,
+//       'assignedWeeks': assignedWeeks,
+//     };
+//   }
+// }
 class User {
   final String name;
   final String userId;
   final String email;
   final String gender;
-  String status; // Add status field to represent user status (blocked or active)
-  String subscriptionType; // 'Paid' or 'Free'
-  bool dietPlanAccess; // Access to diet plan
-  bool loginEnabled; // If the login is enabled
+  final String phone;
+  String status;
+  String subscriptionType;
+  bool dietPlanAccess;
+  bool loginEnabled;
+  Map<String, dynamic>? assignedDietPlan;
+  int totalWeeksOpted; // New field for total weeks opted
+  List<int> assignedWeeks; // New field for already assigned weeks
 
   User({
     required this.name,
     required this.userId,
     required this.email,
     required this.gender,
-    this.status = 'Active', // Default status to 'Active'
-    this.subscriptionType = 'Free', // Default subscription to 'Free'
-    this.dietPlanAccess = true, // Default access to diet plans
-    this.loginEnabled = true, // Default login is enabled
+    required this.phone,
+    this.status = 'Active',
+    this.subscriptionType = 'Free',
+    this.dietPlanAccess = true,
+    this.loginEnabled = true,
+    this.assignedDietPlan,
+    this.totalWeeksOpted = 0, // Default 0 weeks
+    this.assignedWeeks = const [], // Default empty list
   });
-}
 
-class UserController extends GetxController {
-  // List of dummy users
-  var users = <User>[
-    User(name: 'John Doe', userId: '101', email: 'john@example.com', gender: 'Customer'),
-    User(name: 'Jane Smith', userId: '102', email: 'jane@example.com', gender: 'Dietitian', subscriptionType: 'Paid'),
-    User(name: 'Alice Johnson', userId: '103', email: 'alice@example.com', gender: 'Customer'),
-    User(name: 'Bob Brown', userId: '104', email: 'bob@example.com', gender: 'Customer', subscriptionType: 'Paid'),
-    User(name: 'Eve Adams', userId: '105', email: 'eve@example.com', gender: 'Dietitian'),
-  ].obs;
-
-  var isLoading = false.obs;
-
-  void addUser(User user) {
-    users.add(user);
+  factory User.fromFirestore(Map<String, dynamic> data, String userId) {
+    return User(
+      name: data['name'] ?? '',
+      userId: userId,
+      email: data['email'] ?? '',
+      phone: data['phone'] ?? 'N/A',
+      gender: data['gender'] ?? 'Customer',
+      status: data['status'] ?? 'Active',
+      subscriptionType: data['subscriptionType'] ?? 'Free',
+      dietPlanAccess: data['dietPlanAccess'] ?? true,
+      loginEnabled: data['loginEnabled'] ?? true,
+      assignedDietPlan: data['assignedDietPlan'],
+      totalWeeksOpted: data['totalWeeksOpted'] ?? 0,
+      assignedWeeks: List<int>.from(data['assignedWeeks'] ?? []),
+    );
   }
 
-  void blockUser(String userId) {
-    final user = users.firstWhere((u) => u.userId == userId, orElse: () => User(name: '', userId: '', email: '', gender: ''));
-    if (user.userId.isNotEmpty) {
-      user.status = 'Blocked';
-      update();
-    }
-  }
-
-  void removeUser(String userId) {
-    users.removeWhere((u) => u.userId == userId);
-  }
-
-  void toggleDietPlanAccess(String userId) {
-    final user = users.firstWhere((u) => u.userId == userId, orElse: () => User(name: '', userId: '', email: '', gender: ''));
-    if (user.userId.isNotEmpty) {
-      user.dietPlanAccess = !user.dietPlanAccess;
-      update();
-    }
-  }
-
-  void toggleLogin(String userId) {
-    final user = users.firstWhere((u) => u.userId == userId, orElse: () => User(name: '', userId: '', email: '', gender: ''));
-    if (user.userId.isNotEmpty) {
-      user.loginEnabled = !user.loginEnabled;
-      update();
-    }
-  }
-
-  List<User> getDietitianReports() {
-    return users.where((user) => user.gender.toLowerCase() == 'dietitian').toList();
-  }
-
-  List<User> getPaidUsers() {
-    return users.where((user) => user.subscriptionType.toLowerCase() == 'paid').toList();
-  }
-
-  List<User> getFreeUsers() {
-    return users.where((user) => user.subscriptionType.toLowerCase() == 'free').toList();
+  Map<String, dynamic> toFirestore() {
+    return {
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'gender': gender,
+      'status': status,
+      'subscriptionType': subscriptionType,
+      'dietPlanAccess': dietPlanAccess,
+      'loginEnabled': loginEnabled,
+      'assignedDietPlan': assignedDietPlan,
+      'totalWeeksOpted': totalWeeksOpted,
+      'assignedWeeks': assignedWeeks,
+    };
   }
 }
 
@@ -98,179 +146,327 @@ class _UsersScreenState extends State<UsersScreen> {
         return user.name.toLowerCase().contains(query.toLowerCase()) ||
             user.userId.contains(query) ||
             user.email.toLowerCase().contains(query.toLowerCase()) ||
+            user.phone.contains(query) ||
             user.gender.toLowerCase().contains(query.toLowerCase());
       }).toList();
     });
   }
 
-  void showOptions(User user) {
+  // void showDietPlanDetails(User user) {
+  //   if (user.assignedDietPlan == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('No diet plan assigned to this user.')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   final dietPlan = user.assignedDietPlan!;
+  //   showModalBottomSheet(
+  //     context: context,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (context) {
+  //       return Padding(
+  //         padding: const EdgeInsets.all(16.0),
+  //         child: SingleChildScrollView(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 'Diet Plan Details',
+  //                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+  //               ),
+  //               SizedBox(height: 8),
+  //               Divider(),
+  //               ListTile(
+  //                 leading: Icon(Icons.restaurant_menu, color: Colors.green),
+  //                 title: Text('Diet Plan Name'),
+  //                 subtitle: Text(dietPlan['dietPlanDetails']['additionalPlanDetails']['dietPlanName'] ?? 'N/A'),
+  //               ),
+  //               ListTile(
+  //                 leading: Icon(Icons.calendar_today, color: Colors.blue),
+  //                 title: Text('Start Date'),
+  //                 subtitle: Text(dietPlan['startDate'] ?? 'N/A'),
+  //               ),
+  //               ListTile(
+  //                 leading: Icon(Icons.calendar_today, color: Colors.red),
+  //                 title: Text('End Date'),
+  //                 subtitle: Text(dietPlan['endDate'] ?? 'N/A'),
+  //               ),
+  //               ListTile(
+  //                 leading: Icon(Icons.timer, color: Colors.orange),
+  //                 title: Text('Assigned Date'),
+  //                 subtitle: Text(dietPlan['assignedDate'] ?? 'N/A'),
+  //               ),
+  //               ListTile(
+  //                 leading: Icon(Icons.weekend, color: Colors.purple),
+  //                 title: Text('Week'),
+  //                 subtitle: Text(dietPlan['week'].toString()),
+  //               ),
+  //               Divider(),
+  //               Text(
+  //                 'Meal Times',
+  //                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //               ),
+  //               Padding(
+  //                 padding: const EdgeInsets.symmetric(vertical: 8.0),
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     Text('Breakfast: ${dietPlan['dietPlanDetails']['mealTimes']['breakfast'] ?? 'N/A'}'),
+  //                     Text('Lunch: ${dietPlan['dietPlanDetails']['mealTimes']['lunch'] ?? 'N/A'}'),
+  //                     Text('Dinner: ${dietPlan['dietPlanDetails']['mealTimes']['dinner'] ?? 'N/A'}'),
+  //                   ],
+  //                 ),
+  //               ),
+  //               Divider(),
+  //               Text(
+  //                 'Food Categories',
+  //                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //               ),
+  //               ...renderFoodCategories(dietPlan['dietPlanDetails']['foodCategories']),
+  //               Divider(),
+  //               Text(
+  //                 'Additional Plan Details',
+  //                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //               ),
+  //               ListTile(
+  //                 title: Text('Type'),
+  //                 subtitle: Text(dietPlan['dietPlanDetails']['additionalPlanDetails']['type'] ?? 'N/A'),
+  //               ),
+  //               ListTile(
+  //                 title: Text('Cost'),
+  //                 subtitle: Text(dietPlan['dietPlanDetails']['additionalPlanDetails']['cost'] ?? 'Free'),
+  //               ),
+  //               ListTile(
+  //                 title: Text('Duration'),
+  //                 subtitle: Text(dietPlan['dietPlanDetails']['additionalPlanDetails']['weeksDuration'] ??
+  //                     dietPlan['dietPlanDetails']['additionalPlanDetails']['monthsDuration'] ??
+  //                     'N/A'),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+  void showDietPlanDetails(User user) {
+    if (user.totalWeeksOpted == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('This user has not opted for any weeks.')),
+      );
+      return;
+    }
+
+    final pendingWeeks = user.totalWeeksOpted - user.assignedWeeks.length;
+
     showModalBottomSheet(
       context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.thumb_up, color: Colors.green),
-                title: Text('Approve'),
-                onTap: () {
-                  // Approve the user
-                  user.status = 'Active';
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.thumb_down, color: Colors.orange),
-                title: Text('Disapprove'),
-                onTap: () {
-                  // Disapprove the user
-                  user.status = 'Disapproved';
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.block, color: Colors.red),
-                title: Text('Block User'),
-                onTap: () {
-                  userController.blockUser(user.userId);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.no_meals, color: Colors.redAccent),
-                title: Text(user.dietPlanAccess ? 'Disable Diet Plan Access' : 'Enable Diet Plan Access'),
-                onTap: () {
-                  userController.toggleDietPlanAccess(user.userId);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.person_off, color: Colors.red),
-                title: Text(user.loginEnabled ? 'Disable Login' : 'Enable Login'),
-                onTap: () {
-                  userController.toggleLogin(user.userId);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete User'),
-                onTap: () {
-                  userController.removeUser(user.userId);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void showReports() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final dietitianReports = userController.getDietitianReports();
-        final paidUsers = userController.getPaidUsers();
-        final freeUsers = userController.getFreeUsers();
-        return AlertDialog(
-          title: Text('Reports'),
-          content: SingleChildScrollView(
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dietitians Handling Clients:'),
-                for (var dietitian in dietitianReports)
-                  Text('${dietitian.name} (${dietitian.userId})'),
-                SizedBox(height: 10),
-                Text('Paid Users:'),
-                for (var user in paidUsers) Text('${user.name} (${user.userId})'),
-                SizedBox(height: 10),
-                Text('Free Users:'),
-                for (var user in freeUsers) Text('${user.name} (${user.userId})'),
+                Text(
+                  'Diet Plan Details',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Divider(),
+                if (user.assignedWeeks.isNotEmpty)
+                  Text(
+                    'Assigned Weeks: ${user.assignedWeeks.join(', ')}',
+                    style: TextStyle(fontSize: 16, color: Colors.green),
+                  ),
+                if (pendingWeeks > 0)
+                  Text(
+                    '$pendingWeeks week(s) diet plan pending to assign',
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  ),
+                Divider(),
+                Text(
+                  'Meal Times for Assigned Weeks',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                ...user.assignedWeeks.map((week) {
+                  return ListTile(
+                    leading: Icon(Icons.weekend, color: Colors.purple),
+                    title: Text('Week $week'),
+                    subtitle: Text(
+                      user.assignedDietPlan?['dietPlanDetails']['mealTimes']['week_$week'] ??
+                          'N/A',
+                    ),
+                  );
+                }),
+                Divider(),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    assignNewWeek(user);
+                  },
+                  child: Text('Assign Diet Plan for Pending Weeks'),
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Close'),
-            ),
-          ],
         );
       },
     );
   }
+  void assignNewWeek(User user) async {
+    if (user.totalWeeksOpted == user.assignedWeeks.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('All weeks have already been assigned.')),
+      );
+      return;
+    }
+
+    final nextWeek = user.assignedWeeks.isNotEmpty
+        ? user.assignedWeeks.last + 1
+        : 1; // Get the next week to assign
+
+    // Simulating assignment logic
+    user.assignedWeeks.add(nextWeek);
+    user.assignedDietPlan ??= {
+      'dietPlanDetails': {
+        'mealTimes': {
+          'week_$nextWeek': 'Meal Plan for Week $nextWeek',
+        },
+      },
+    };
+
+    setState(() {});
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Assigned Diet Plan for Week $nextWeek')),
+    );
+  }
+
+  List<Widget> renderFoodCategories(Map<String, dynamic>? foodCategories) {
+    if (foodCategories == null) {
+      return [Text('No food categories available.')];
+    }
+    return foodCategories.entries.map((entry) {
+      final categoryName = entry.key;
+      final items = entry.value as List<dynamic>;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 8),
+          Text(
+            categoryName,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          ...items.map((item) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(
+                "${item['name']} - ${item['calories']} cal (${item['vegetarian']})",
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
+            );
+          }).toList(),
+        ],
+      );
+    }).toList();
+  }
+  static const Color primary = Color(0xff91b526);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Users Information'),
+        title: Text('Users Information',style: TextStyle(color: Colors.white),),
+        backgroundColor: primary,
         actions: [
           IconButton(
-            icon: Icon(Icons.report),
-            onPressed: showReports,
+            icon: Icon(Icons.refresh),
+            onPressed: userController.fetchUsers,
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Obx(() {
+        final users = filteredUsers.isEmpty ? userController.users : filteredUsers;
+        if (userController.isLoading.value) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (users.isEmpty) {
+          return Center(child: Text('No users found.'));
+        }
+        return Column(
           children: [
-            TextField(
-              controller: searchController,
-              onChanged: filterUsers,
-              decoration: InputDecoration(
-                hintText: 'Search by name, user ID, email, or gender',
-                prefixIcon: Icon(Icons.search),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: searchController,
+                onChanged: filterUsers,
+                decoration: InputDecoration(
+                  hintText: 'Search by name, email, phone, or gender',
+                  prefixIcon: Icon(Icons.search),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
               ),
             ),
-            SizedBox(height: 20),
-            Obx(() {
-              final users = filteredUsers.isEmpty ? userController.users : filteredUsers;
-              if (users.isEmpty) {
-                return Center(child: Text('No users found.'));
-              }
-              return Expanded(
-                child: ListView.builder(
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return Container(
-                      padding: EdgeInsets.all(12),
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                        color: Colors.white,
+            Expanded(
+              child: ListView.builder(
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final user = users[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      leading: CircleAvatar(
+                        backgroundColor: primary,
+                        child: Icon(Icons.person, color: Colors.white),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      title: Text(
+                        user.name,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: Text(user.name)),
-                          Expanded(child: Text(user.userId)),
-                          Expanded(child: Text(user.email)),
-                          Expanded(child: Text(user.gender)),
-                          IconButton(
-                            icon: Icon(Icons.more_vert),
-                            onPressed: () => showOptions(user),
-                          ),
+                          Text('Email: ${user.email}', style: TextStyle(fontSize: 14)),
+                          Text('Phone: ${user.phone}', style: TextStyle(fontSize: 14)),
+                          if (user.assignedDietPlan != null)
+                            Text(
+                              'Diet Plan: ${user.assignedDietPlan!['dietPlanDetails']['additionalPlanDetails']['dietPlanName'] ?? 'N/A'}',
+                              style: TextStyle(fontSize: 14, color:primary),
+                            ),
                         ],
                       ),
-                    );
-                  },
-                ),
-              );
-            }),
+                      trailing: IconButton(
+                        icon: Icon(Icons.more_vert, color: Colors.green),
+                        onPressed: () => showDietPlanDetails(user),
+                      ),
+                      onTap: () => showDietPlanDetails(user),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
 }

@@ -2,155 +2,157 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'dart:typed_data'; // For handling binary data
+
 import '../utils/app-colors.dart';
 import 'Diet plan form.dart';
 
+class FoodItemsMasterController extends GetxController {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-class FoodItemsMasterScreen extends StatefulWidget {
-  final TimeOfDay breakfastTime;
-  final TimeOfDay lunchTime;
-  final TimeOfDay dinnerTime;
-  final int dietPlanDays; // Added parameter for diet plan days
-
-  const FoodItemsMasterScreen({
-    Key? key,
-    required this.breakfastTime,
-    required this.lunchTime,
-    required this.dinnerTime,
-    required this.dietPlanDays, // Mark as required
-  }) : super(key: key);
-
-  @override
-  _FoodItemsMasterScreenState createState() => _FoodItemsMasterScreenState();
-}
-
-class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
-  final Map<String, List<Map<String, dynamic>>> foodCategories = {
-    'Morning Tea': [],
-    'Breakfast': [],
-    'Mid Day Snacks': [],
-    'Lunch': [],
-    'Evening Snacks': [],
-    'Dinner': [],
-    'Bedtime Snack': [],
+  var foodCategories = <String, RxList<Map<String, dynamic>>>{
+    'Morning Tea': <Map<String, dynamic>>[].obs,
+    'Breakfast': <Map<String, dynamic>>[].obs,
+    'Mid Day Snacks': <Map<String, dynamic>>[].obs,
+    'Lunch': <Map<String, dynamic>>[].obs,
+    'Evening Snacks': <Map<String, dynamic>>[].obs,
+    'Dinner': <Map<String, dynamic>>[].obs,
+    'Bedtime Snack': <Map<String, dynamic>>[].obs,
   };
 
+  var previousEntries = <String, RxList<Map<String, dynamic>>>{
+    'Morning Tea': <Map<String, dynamic>>[].obs,
+    'Breakfast': <Map<String, dynamic>>[].obs,
+    'Mid Day Snacks': <Map<String, dynamic>>[].obs,
+    'Lunch': <Map<String, dynamic>>[].obs,
+    'Evening Snacks': <Map<String, dynamic>>[].obs,
+    'Dinner': <Map<String, dynamic>>[].obs,
+    'Bedtime Snack': <Map<String, dynamic>>[].obs,
+  };
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchPreviousEntries();
+  }
+
+  Future<void> fetchPreviousEntries() async {
+    for (String category in foodCategories.keys) {
+      final snapshot = await _firestore.collection('foodItems').doc(category).get();
+      if (snapshot.exists) {
+        List<Map<String, dynamic>> items = List<Map<String, dynamic>>.from(snapshot.data()?['items'] ?? []);
+        previousEntries[category]?.assignAll(items);
+      }
+    }
+  }
+
+  Future<void> saveToFirebase(String category, Map<String, dynamic> item) async {
+    previousEntries[category]?.add(item);
+    await _firestore.collection('foodItems').doc(category).set({
+      'items': previousEntries[category],
+    });
+  }
+
   void addFoodItem(String category) {
-    setState(() {
-      foodCategories[category]?.add({
-        'name': '',
-        'vegetarian': 'Vegetarian', // Default value
-        'calories': '',
-        'images': [],
-      });
+    foodCategories[category]?.add({
+      'name': '',
+      'vegetarian': 'Vegetarian',
+      'calories': '',
+      'images': [],
     });
   }
 
   void removeFoodItem(String category, int index) {
-    setState(() {
+    if (foodCategories[category]!.length > index) {
       foodCategories[category]?.removeAt(index);
-    });
+    }
   }
 
-  void updateFoodItem(
-      String category, int index, String field, dynamic value) {
-    setState(() {
+  void updateFoodItem(String category, int index, String field, dynamic value) {
+    if (foodCategories[category]!.length > index) {
       foodCategories[category]?[index][field] = value;
-    });
+      foodCategories[category]?.refresh();
+    }
   }
 
-  void uploadImage(String category, int index, List<String> images) {
-    setState(() {
-      foodCategories[category]?[index]['images'] = images;
-    });
+  void reusePreviousItem(String category, Map<String, dynamic> item) {
+    foodCategories[category]?.add(Map<String, dynamic>.from(item));
   }
+}
 
-  void saveDietPlan() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DietPlanScreen(
-          breakfastTime: widget.breakfastTime,
-          lunchTime: widget.lunchTime,
-          dinnerTime: widget.dinnerTime,
-          dietPlanDays: widget.dietPlanDays, // Pass to the next screen
-          foodCategories: foodCategories,
-        ),
-      ),
-    );
-  }
+class FoodItemsMasterScreen extends StatelessWidget {
+  final TimeOfDay breakfastTime;
+  final TimeOfDay lunchTime;
+  final TimeOfDay dinnerTime;
+  final int dietPlanDays;
+
+  FoodItemsMasterScreen({
+    Key? key,
+    required this.breakfastTime,
+    required this.lunchTime,
+    required this.dinnerTime,
+    required this.dietPlanDays,
+  }) : super(key: key);
+
+  final FoodItemsMasterController controller = Get.put(FoodItemsMasterController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Food Items Master'),
+        backgroundColor: AppColors.primary,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 45,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: AppColors.primary,
-              ),
-              child: Center(
-                child: Text(
-                  'Food Items Master',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 30),
             Text(
-              'Diet Plan Duration: ${widget.dietPlanDays} days',
+              'Diet Plan Duration: $dietPlanDays days',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...foodCategories.entries.map((entry) {
-                  return FoodCategoryWidget(
-                    category: entry.key,
-                    items: entry.value,
-                    onAddItem: () => addFoodItem(entry.key),
-                    onRemoveItem: (index) => removeFoodItem(entry.key, index),
-                    onUpdateItem: (index, field, value) =>
-                        updateFoodItem(entry.key, index, field, value),
-                    onUploadImages: (index, images) =>
-                        uploadImage(entry.key, index, images),
-                  );
-                }).toList(),
-                SizedBox(height: 20), // Space between the list and button
-                Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      saveDietPlan();
-                      Get.to(() => DietPlanScreen(breakfastTime: widget.breakfastTime, lunchTime: widget.lunchTime, dinnerTime: widget.dinnerTime, dietPlanDays: widget.dietPlanDays, foodCategories: foodCategories,)); // Replace `NextScreen` with your actual screen widget
-                    },                    child: Text('Save Diet Plan',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold)),
+            ...controller.foodCategories.entries.map((entry) {
+              return FoodCategoryWidget(
+                category: entry.key,
+                items: entry.value,
+                previousItems: controller.previousEntries[entry.key] ?? RxList<Map<String, dynamic>>(),
+                onAddItem: () => controller.addFoodItem(entry.key),
+                onRemoveItem: (index) => controller.removeFoodItem(entry.key, index),
+                onUpdateItem: (index, field, value) =>
+                    controller.updateFoodItem(entry.key, index, field, value),
+                onReuseItem: (item) => controller.reusePreviousItem(entry.key, item),
+                onSaveNewItem: (item) => controller.saveToFirebase(entry.key, item),
+              );
+            }).toList(),
+            SizedBox(height: 30),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.to(() => DietPlanScreen(
+                    breakfastTime: breakfastTime,
+                    lunchTime: lunchTime,
+                    dinnerTime: dinnerTime,
+                    dietPlanDays: dietPlanDays,
+                    foodCategories: controller.foodCategories.map((key, value) {
+                      return MapEntry(key, value.toList());
+                    }),
+                  ));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  padding: EdgeInsets.symmetric(vertical: 18, horizontal: 60),
                 ),
-              ],
-
+                child: Text(
+                  'Save Food Items and Go to Next Page',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
             ),
           ],
         ),
@@ -161,26 +163,29 @@ class _FoodItemsMasterScreenState extends State<FoodItemsMasterScreen> {
 
 class FoodCategoryWidget extends StatelessWidget {
   final String category;
-  final List<Map<String, dynamic>> items;
+  final RxList<Map<String, dynamic>> items;
+  final RxList<Map<String, dynamic>> previousItems;
   final VoidCallback onAddItem;
   final Function(int index) onRemoveItem;
   final Function(int index, String field, dynamic value) onUpdateItem;
-  final Function(int index, List<String> images) onUploadImages;
+  final Function(Map<String, dynamic> item) onReuseItem;
+  final Function(Map<String, dynamic> item) onSaveNewItem;
 
   const FoodCategoryWidget({
     Key? key,
     required this.category,
     required this.items,
+    required this.previousItems,
     required this.onAddItem,
     required this.onRemoveItem,
     required this.onUpdateItem,
-    required this.onUploadImages,
+    required this.onReuseItem,
+    required this.onSaveNewItem,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
       margin: const EdgeInsets.symmetric(vertical: 10),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -198,22 +203,19 @@ class FoodCategoryWidget extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            Column(
-              children: items.asMap().entries.map((entry) {
-                int index = entry.key;
-                Map<String, dynamic> item = entry.value;
-
-                return FoodItemWidget(
-                  item: item,
-                  onRemove: () => onRemoveItem(index),
-                  onUpdateField: (field, value) =>
-                      onUpdateItem(index, field, value),
-                  onUploadImages: (images) =>
-                      onUploadImages(index, images),
-                );
-              }).toList(),
-            ),
-            ElevatedButton(
+            Obx(() => Column(
+              children: [
+                for (int index = 0; index < items.length; index++)
+                  FoodItemWidget(
+                    item: items[index],
+                    onRemove: () => onRemoveItem(index),
+                    onUpdateField: (field, value) => onUpdateItem(index, field, value),
+                    onSave: () => onSaveNewItem(items[index]),
+                  ),
+              ],
+            )),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
               onPressed: onAddItem,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -221,11 +223,37 @@ class FoodCategoryWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text(
-                'Add ${category} Item',
+              icon: Icon(Icons.add, color: Colors.white),
+              label: Text(
+                'Add New Item',
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
+            SizedBox(height: 20),
+            Text(
+              'Previous Items',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            Divider(),
+            Obx(() => previousItems.isEmpty
+                ? Text('No previous items.')
+                : ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: previousItems.length,
+              itemBuilder: (context, index) {
+                final item = previousItems[index];
+                return ListTile(
+                  title: Text(item['name']),
+                  trailing: Icon(Icons.copy, color: AppColors.primary),
+                  onTap: () => onReuseItem(item),
+                );
+              },
+            )),
           ],
         ),
       ),
@@ -233,83 +261,124 @@ class FoodCategoryWidget extends StatelessWidget {
   }
 }
 
-class FoodItemWidget extends StatelessWidget {
+class FoodItemWidget extends StatefulWidget {
   final Map<String, dynamic> item;
   final VoidCallback onRemove;
   final Function(String field, dynamic value) onUpdateField;
-  final Function(List<String> images) onUploadImages;
+  final VoidCallback onSave;
 
   const FoodItemWidget({
     Key? key,
     required this.item,
     required this.onRemove,
     required this.onUpdateField,
-    required this.onUploadImages,
+    required this.onSave,
   }) : super(key: key);
+
+  @override
+  _FoodItemWidgetState createState() => _FoodItemWidgetState();
+}
+
+class _FoodItemWidgetState extends State<FoodItemWidget> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController caloriesController = TextEditingController();
+  Uint8List? selectedImageBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController.text = widget.item['name'];
+    caloriesController.text = widget.item['calories'];
+  }
+
+  Future<void> pickImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.single.bytes != null) {
+      setState(() {
+        selectedImageBytes = result.files.single.bytes;
+      });
+
+      widget.onUpdateField('images', [result.files.single.name]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
+              controller: nameController,
               decoration: InputDecoration(labelText: 'Item Name'),
-              onChanged: (value) => onUpdateField('name', value),
+              onChanged: (value) => widget.onUpdateField('name', value),
             ),
+            SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: item['vegetarian'],
+              value: widget.item['vegetarian'],
+              decoration: InputDecoration(labelText: 'Type'),
               items: ['Vegetarian', 'Non-Vegetarian']
                   .map((type) => DropdownMenuItem(
                 value: type,
                 child: Text(type),
               ))
                   .toList(),
-              onChanged: (value) => onUpdateField('vegetarian', value),
-              decoration: InputDecoration(labelText: 'Type'),
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Calories (Optional)'),
-              onChanged: (value) => onUpdateField('calories', value),
+              onChanged: (value) => widget.onUpdateField('vegetarian', value),
             ),
             SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              children: List.generate(
-                item['images']?.length ?? 0,
-                    (index) => ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    item['images'][index],
-                    width: 60,
-                    height: 60,
+            TextField(
+              controller: caloriesController,
+              decoration: InputDecoration(labelText: 'Calories'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) => widget.onUpdateField('calories', value),
+            ),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: pickImage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                  ),
+                  child: Text('Upload Picture'),
+                ),
+                if (selectedImageBytes != null)
+                  Image.memory(
+                    selectedImageBytes!,
+                    width: 50,
+                    height: 50,
                     fit: BoxFit.cover,
                   ),
-                ),
-              )..add(
-                InkWell(
-                  onTap: () => {}, // Handle image picking
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.primary),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.add, color: AppColors.primary),
-                  ),
-                ),
-              ),
+              ],
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: onRemove,
-                icon: Icon(Icons.delete, color: Colors.red),
-              ),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    widget.onSave();
+                    Get.snackbar('Success', 'Item added successfully!',
+                        backgroundColor: Colors.green, colorText: Colors.white);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                  icon: Icon(Icons.save, color: Colors.white),
+                  label: Text('Save'),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: widget.onRemove,
+                ),
+              ],
             ),
           ],
         ),
